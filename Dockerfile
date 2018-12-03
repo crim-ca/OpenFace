@@ -1,4 +1,4 @@
-FROM ubuntu:14.04 as build
+FROM ubuntu:16.04 as build
 
 LABEL maintainer="Edgar Aroutiounian <edgar.factorial@gmail.com>"
 
@@ -54,10 +54,30 @@ RUN cd ${BUILD_DIR} && unzip 3.4.0.zip && \
     -D BUILD_SHARED_LIBS=OFF .. && \
     make -j4 && \
     make install
+RUN apt-get install cmake
+RUN cd ~ && \
+    mkdir -p dlib-tmp && \
+    cd dlib-tmp && \
+    curl -L \
+         https://github.com/davisking/dlib/archive/v19.13.tar.gz \
+         -o dlib.tar.bz2 && \
+    tar xf dlib.tar.bz2 && \
+    cd dlib-19.13/ && \
+    mkdir build && \
+    cd build && \
+#    cmake ../../tools/python && \
+    cmake  ..  && \
+    make install && \
+    find / -name "libdlib.a" && \
 
+#    cp dlib.so /usr/local/lib/python2.7/dist-packages && \
+    rm -rf ~/dlib-tmp
 RUN cd ${OPENFACE_DIR} && mkdir -p build && cd build && \
     cmake -D CMAKE_BUILD_TYPE=RELEASE .. && \
     make -j4
 
 RUN ln /dev/null /dev/raw1394
-ENTRYPOINT ["/bin/bash"]
+#ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/home/openface-build/build/bin/FeatureExtraction", "-aus", "-pose", "-out_dir", "/output", "-root", "/input", "-inroot","/input", "-f"]
+CMD []
+
